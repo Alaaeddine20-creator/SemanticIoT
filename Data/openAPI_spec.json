@@ -1,0 +1,154 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "IoT Platform API Specification",
+    "description": "API specification for IoT platform including temperature sensors and radiator thermostats.",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "http://fiware.rwth-aachen.de/"
+    }
+  ],
+  "paths": {
+    "/v2/entities/{entityId}/attrs/temperature/value": {
+      "get": {
+        "tags": [
+          "Temperature Sensor"
+        ],
+        "summary": "Get Temperature Measurement",
+        "description": "Retrieves the current temperature measurement from the temperature sensor.",
+        "operationId": "getTemperatureMeasurement",
+        "parameters": [
+          {
+            "name": "entityId",
+            "in": "path",
+            "description": "ID of the temperature sensor entity.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Entity type",
+            "schema": {
+              "type": "string",
+              "default": "TemperatureSensor"
+            }
+          },
+          {
+            "name": "Fiware-Service",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "semantic_iot"
+            }
+          },
+          {
+            "name": "Fiware-ServicePath",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "/"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation. Returns the temperature measurement.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "number",
+                  "format": "float"
+                },
+                "example": 22.5
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/entities/{entityId}/attrs/temperatureSetpoint/value": {
+      "put": {
+        "tags": [
+          "Radiator Thermostat"
+        ],
+        "summary": "Update Radiator Thermostat Setpoint",
+        "description": "Overwrites the temperature setpoint of the radiator thermostat.",
+        "operationId": "updateThermostatSetpoint",
+        "parameters": [
+          {
+            "name": "entityId",
+            "in": "path",
+            "description": "ID of the radiator thermostat entity.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Entity type",
+            "schema": {
+              "type": "string",
+              "default": "Thermostat"
+            }
+          },
+          {
+            "name": "Content-Type",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "text/plain"
+            }
+          },
+          {
+            "name": "Fiware-Service",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "semantic_iot"
+            }
+          },
+          {
+            "name": "Fiware-ServicePath",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "/"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Desired temperature setpoint.",
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "number",
+                "format": "float"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Temperature setpoint updated successfully.",
+            "content": {}
+          }
+        }
+      }
+    }
+  },
+  "components": {},
+  "x-original-swagger-version": "2.0"
+}

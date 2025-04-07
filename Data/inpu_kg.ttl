@@ -1,0 +1,18 @@
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+@prefix http: <http://www.w3.org/2011/http#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rec: <https://w3id.org/rec#> .
+@prefix ex: <http://example.com/resource/> .
+
+ex:TemperatureSensor_fiware_room_101_1_v1 a brick:Air_Temperature_Sensor ;
+    rdf:value <http://fiware.rwth-aachen.de/v2/entities/TemperatureSensor:fiware_room_101_1_v1/attrs/temperature/value> ;
+    brick:isPointOf ex:HotelRoom_fiware_room_101_1_v1 .
+
+ex:temperatureSetpoint_Thermostat_fiware_room_101_1_v1 a brick:Temperature_Setpoint ;
+    rdf:value <http://fiware.rwth-aachen.de/v2/entities/Thermostat:fiware_room_101_1_v1/attrs/temperatureSetpoint/value> ;
+    brick:isPointOf ex:Thermostat_fiware_room_101_1_v1 .
+
+ex:Thermostat_fiware_room_101_1_v1 a brick:Thermostat ;
+    brick:hasLocation ex:HotelRoom_fiware_room_101_1_v1 .
+
+ex:HotelRoom_fiware_room_101_1_v1 a rec:Room .

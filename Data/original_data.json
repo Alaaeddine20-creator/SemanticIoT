@@ -1,0 +1,58 @@
+[
+    {
+        "id": "Hotel:fiware",
+        "type": "Hotel",
+        "name": {
+            "type": "Text",
+            "value": "Hotel Fiware",
+            "metadata": {}
+        }
+    },
+    {
+        "id": "HotelRoom:fiware_room_101_1_v1",
+        "type": "HotelRoom",
+        "hasLocation": {
+            "type": "Relationship",
+            "value": "Hotel:fiware",
+            "metadata": {}
+        },
+        "name": {
+            "type": "Text",
+            "value": "fiware_room_101_1_v1",
+            "metadata": {}
+        }
+    },
+    {
+        "id": "RadiatorThermostat:fiware_room_101_1_v1",
+        "type": "RadiatorThermostat",
+        "hasLocation": {
+            "type": "Relationship",
+            "value": "HotelRoom:fiware_room_101_1_v1",
+            "metadata": {}
+        },
+        "temperatureSetpoint": {
+            "type": "Number",
+            "value": 22,
+            "metadata": {}
+        }
+    },
+    {
+        "id": "TemperatureSensor:fiware_room_101_1_v1",
+        "type": "TemperatureSensor",
+        "TimeInstant": {
+            "type": "DateTime",
+            "value": "2024-12-17T13:58:04.451Z",
+            "metadata": {}
+        },
+        "hasLocation": {
+            "type": "Relationship",
+            "value": "HotelRoom:fiware_room_101_1_v1",
+            "metadata": {}
+        },
+        "temperature": {
+            "type": "Number",
+            "value": 19,
+            "metadata": {}
+        }
+    }
+]
