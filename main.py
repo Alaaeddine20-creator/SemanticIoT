@@ -3,7 +3,7 @@ import os
 from rdflib import Graph, Namespace, Literal, URIRef
 from rdflib.namespace import RDF
 
-# === Namespaces ===
+# === Define Namespaces used in the RDF model ===
 EX = Namespace("http://example.com/resource/")
 HTTP = Namespace("http://www.w3.org/2011/http#")
 BRICK = Namespace("https://brickschema.org/schema/Brick#")
@@ -11,7 +11,7 @@ REC = Namespace("https://w3id.org/rec#")
 
 BASE_URL = "http://fiware.rwth-aachen.de/v2/entities/"
 
-# === Load OpenAPI Spec Dynamically ===
+# === Parse OpenAPI Specification to extract request types, attributes, headers ===
 def parse_openapi():
     with open("data/openAPI_spec.json") as f:
         spec = json.load(f)
@@ -40,7 +40,7 @@ def parse_openapi():
                 })
     return endpoints
 
-# === Generate Headers as RDF Nodes ===
+# === Dynamically create HTTP header nodes based on OpenAPI parameters ===
 def create_header(g, header_name, header_value, suffix=""):
     header_uri = EX[f"Header_{header_name.replace('-', '')}{suffix}"]
     g.add((header_uri, RDF.type, HTTP.MessageHeader))
@@ -48,30 +48,34 @@ def create_header(g, header_name, header_value, suffix=""):
     g.add((header_uri, HTTP.fieldValue, Literal(header_value)))
     return header_uri
 
-# === Main Generator ===
+# === Main function to generate RDF triples ===
 def main():
     g = Graph()
+
+    # Load pre-existing RDF data from input files
     g.parse("data/inpu_kg.ttl", format="turtle")
     g.parse("data/http4rdf_ontology.ttl", format="turtle")
 
+    # Load device data (entity ID, type, etc.)
     with open("data/original_data.json") as f:
         devices = json.load(f)
 
+    # Load OpenAPI specification and parse endpoint rules
     endpoint_rules = parse_openapi()
 
-    # Optional mapping from actual entity types to OpenAPI entity_type
+    # Map internal device types to OpenAPI entity types
     entity_type_alias = {
         "RadiatorThermostat": "Thermostat",
         "TemperatureSensor": "TemperatureSensor",
-        "HotelRoom": None  # not used in OpenAPI
+        "HotelRoom": None  # HotelRoom not used in OpenAPI
     }
 
     for dev in devices:
         dev_id = dev["id"]
         dev_type = dev["type"]
-        safe_id = dev_id.replace(":", "_")
+        safe_id = dev_id.replace(":", "_")  # make URI-friendly ID
 
-        # Match rule from OpenAPI
+        # Match OpenAPI endpoint for this device type
         mapped_type = entity_type_alias.get(dev_type)
         matched = next((ep for ep in endpoint_rules if ep["entity_type"] == mapped_type), None)
 
@@ -82,7 +86,7 @@ def main():
         method = matched["method"]
         full_uri = f"{BASE_URL}{dev_id}/attrs/{attr}/value"
 
-        # === Create Brick Entity ===
+        # === Create RDF Brick triples to describe the device ===
         if dev_type == "TemperatureSensor":
             sensor_uri = EX[f"{dev_type}_{safe_id}"]
             g.add((sensor_uri, RDF.type, BRICK.Air_Temperature_Sensor))
@@ -102,13 +106,13 @@ def main():
             g.add((EX[f"HotelRoom_{safe_id}"], RDF.type, REC.Room))
             continue
 
-        # === Create HTTP Request RDF ===
+        # === Create RDF triples to describe HTTP request dynamically ===
         request_uri = EX[f"{method}_{safe_id}"]
-        g.add((request_uri, RDF.type, HTTP.Request))
-        g.add((request_uri, HTTP.mthd, Literal(method)))
-        g.add((request_uri, HTTP.requestURI, URIRef(full_uri)))
+        g.add((request_uri, RDF.type, HTTP.Request))                  # ex:Request a http:Request
+        g.add((request_uri, HTTP.mthd, Literal(method)))              # ex:Request http:mthd "GET"
+        g.add((request_uri, HTTP.requestURI, URIRef(full_uri)))       # ex:Request http:requestURI <url>
 
-        # === Link All Headers from OpenAPI ===
+        # === Add HTTP headers from OpenAPI to the request ===
         for header in matched["headers"]:
             header_node = create_header(
                 g,
@@ -118,12 +122,12 @@ def main():
             )
             g.add((request_uri, HTTP.headers, header_node))
 
-    # === Serialize Output ===
+    # === Write final RDF graph to output file ===
     os.makedirs("output", exist_ok=True)
     with open("output/final_output.ttl", "w") as f:
         f.write(g.serialize(format="turtle"))
 
-    print("Done: RDF written to output/final_output.ttl")
+    print("✅ Done! RDF written to output/final_output.ttl")
 
 if __name__ == "__main__":
     main()
