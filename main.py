@@ -127,7 +127,7 @@ def main():
     with open("output/final_output.ttl", "w") as f:
         f.write(g.serialize(format="turtle"))
 
-    print("✅ Done! RDF written to output/final_output.ttl")
+    print(" Done! RDF written to output/final_output.ttl")
 
 if __name__ == "__main__":
     main()
