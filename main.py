@@ -19,6 +19,8 @@ def parse_openapi():
     endpoints = []
     for path, methods in spec["paths"].items():
         for method, info in methods.items():
+            # extract entity_type and attribute
+            # store in list of endpoint rules
             entity_type = None
             headers = []
             for param in info.get("parameters", []):
@@ -43,9 +45,11 @@ def parse_openapi():
 # === Dynamically create HTTP header nodes based on OpenAPI parameters ===
 def create_header(g, header_name, header_value, suffix=""):
     header_uri = EX[f"Header_{header_name.replace('-', '')}{suffix}"]
-    g.add((header_uri, RDF.type, HTTP.MessageHeader))
-    g.add((header_uri, HTTP.fieldName, Literal(header_name)))
-    g.add((header_uri, HTTP.fieldValue, Literal(header_value)))
+    # Check if header already exists before adding
+    if (header_uri, None, None) not in g:
+        g.add((header_uri, RDF.type, HTTP.MessageHeader))
+        g.add((header_uri, HTTP.fieldName, Literal(header_name)))
+        g.add((header_uri, HTTP.fieldValue, Literal(header_value)))
     return header_uri
 
 # === Main function to generate RDF triples ===
@@ -89,28 +93,39 @@ def main():
         # === Create RDF Brick triples to describe the device ===
         if dev_type == "TemperatureSensor":
             sensor_uri = EX[f"{dev_type}_{safe_id}"]
-            g.add((sensor_uri, RDF.type, BRICK.Air_Temperature_Sensor))
-            g.add((sensor_uri, RDF.value, URIRef(full_uri)))
-            g.add((sensor_uri, BRICK.isPointOf, EX[f"HotelRoom_{safe_id}"]))
+            # Only create if not already present
+            if (sensor_uri, RDF.type, BRICK.Air_Temperature_Sensor) not in g:
+                g.add((sensor_uri, RDF.type, BRICK.Air_Temperature_Sensor))
+                g.add((sensor_uri, RDF.value, URIRef(full_uri)))
+                g.add((sensor_uri, BRICK.isPointOf, EX[f"HotelRoom_{safe_id}"]))
 
         elif dev_type == "RadiatorThermostat":
             thermo_uri = EX[f"{dev_type}_{safe_id}"]
             setpoint_uri = EX[f"temperatureSetpoint_{safe_id}"]
-            g.add((thermo_uri, RDF.type, BRICK.Thermostat))
-            g.add((thermo_uri, BRICK.hasLocation, EX[f"HotelRoom_{safe_id}"]))
-            g.add((setpoint_uri, RDF.type, BRICK.Temperature_Setpoint))
-            g.add((setpoint_uri, BRICK.isPointOf, thermo_uri))
-            g.add((setpoint_uri, RDF.value, URIRef(full_uri)))
+            # Avoid duplicating Thermostat triples
+            if (thermo_uri, RDF.type, BRICK.Thermostat) not in g:
+                g.add((thermo_uri, RDF.type, BRICK.Thermostat))
+                g.add((thermo_uri, BRICK.hasLocation, EX[f"HotelRoom_{safe_id}"]))
+            # Avoid duplicating Setpoint triples
+            if (setpoint_uri, RDF.type, BRICK.Temperature_Setpoint) not in g:
+                g.add((setpoint_uri, RDF.type, BRICK.Temperature_Setpoint))
+                g.add((setpoint_uri, BRICK.isPointOf, thermo_uri))
+                g.add((setpoint_uri, RDF.value, URIRef(full_uri)))
 
         elif dev_type == "HotelRoom":
-            g.add((EX[f"HotelRoom_{safe_id}"], RDF.type, REC.Room))
+            room_uri = EX[f"HotelRoom_{safe_id}"]
+            # Only create the room if it's not already in the graph
+            if (room_uri, RDF.type, REC.Room) not in g:
+                g.add((room_uri, RDF.type, REC.Room))
             continue
 
         # === Create RDF triples to describe HTTP request dynamically ===
         request_uri = EX[f"{method}_{safe_id}"]
-        g.add((request_uri, RDF.type, HTTP.Request))                  # ex:Request a http:Request
-        g.add((request_uri, HTTP.mthd, Literal(method)))              # ex:Request http:mthd "GET"
-        g.add((request_uri, HTTP.requestURI, URIRef(full_uri)))       # ex:Request http:requestURI <url>
+        # Skip if request already exists
+        if (request_uri, RDF.type, HTTP.Request) not in g:
+            g.add((request_uri, RDF.type, HTTP.Request))
+            g.add((request_uri, HTTP.mthd, Literal(method)))
+            g.add((request_uri, HTTP.requestURI, URIRef(full_uri)))
 
         # === Add HTTP headers from OpenAPI to the request ===
         for header in matched["headers"]:
@@ -127,7 +142,7 @@ def main():
     with open("output/final_output.ttl", "w") as f:
         f.write(g.serialize(format="turtle"))
 
-    print(" Done! RDF written to output/final_output.ttl")
+    print("Done: RDF written to output/final_output.ttl")
 
 if __name__ == "__main__":
     main()
