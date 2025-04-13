@@ -1,0 +1,59 @@
+@prefix brick: <https://brickschema.org/schema/Brick#> .
+
+#####  the existing workflow
+@prefix ns1: <https://brickschema.org/schema/Brick#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+<http://example.com/resource/TemperatureSensor_TemperatureSensor_fiware_room_101_1_v1> a ns1:Air_Temperature_Sensor ;
+    rdf:value <http://fiware.rwth-aachen.de/v2/entities/TemperatureSensor:fiware_room_101_1_v1/attrs/temperature/value> ;
+    ns1:isPointOf <http://example.com/resource/HotelRoom_TemperatureSensor_fiware_room_101_1_v1> .
+
+<http://example.com/resource/temperatureSetpoint_RadiatorThermostat_fiware_room_101_1_v1> a ns1:Temperature_Setpoint ;
+    rdf:value <http://fiware.rwth-aachen.de/v2/entities/RadiatorThermostat:fiware_room_101_1_v1/attrs/temperatureSetpoint/value> ;
+    ns1:isPointOf <http://example.com/resource/RadiatorThermostat_RadiatorThermostat_fiware_room_101_1_v1> .
+
+<http://example.com/resource/RadiatorThermostat_RadiatorThermostat_fiware_room_101_1_v1> a ns1:Thermostat ;
+    rdf:value <http://fiware.rwth-aachen.de/v2/entities/RadiatorThermostat:fiware_room_101_1_v1/attrs/temperatureSetpoint/value> ;
+    ns1:hasLocation <http://example.com/resource/HotelRoom_RadiatorThermostat_fiware_room_101_1_v1> .
+
+
+#####  the API interaction
+@prefix ns1: <http://www.w3.org/2011/http#> .
+
+<http://example.com/resource/GET_TemperatureSensor_fiware_room_101_1_v1> a ns1:Request ;
+    ns1:headers <http://example.com/resource/Header_FiwareServicePath_TemperatureSensor_fiware_room_101_1_v1>,
+        <http://example.com/resource/Header_FiwareService_TemperatureSensor_fiware_room_101_1_v1> ;
+    ns1:mthd "GET" ;
+    ns1:requestURI <http://fiware.rwth-aachen.de/v2/entities/TemperatureSensor:fiware_room_101_1_v1/attrs/temperature/value> .
+
+<http://example.com/resource/PUT_RadiatorThermostat_fiware_room_101_1_v1> a ns1:Request ;
+    ns1:headers <http://example.com/resource/Header_ContentType_RadiatorThermostat_fiware_room_101_1_v1>,
+        <http://example.com/resource/Header_FiwareServicePath_RadiatorThermostat_fiware_room_101_1_v1>,
+        <http://example.com/resource/Header_FiwareService_RadiatorThermostat_fiware_room_101_1_v1> ;
+    ns1:mthd "PUT" ;
+    ns1:requestURI <http://fiware.rwth-aachen.de/v2/entities/RadiatorThermostat:fiware_room_101_1_v1/attrs/temperatureSetpoint/value> .
+
+
+# Define common headers
+@prefix ns1: <http://www.w3.org/2011/http#> .
+
+<http://example.com/resource/Header_ContentType_RadiatorThermostat_fiware_room_101_1_v1> a ns1:MessageHeader ;
+    ns1:fieldName "Content-Type" ;
+    ns1:fieldValue "text/plain" .
+
+<http://example.com/resource/Header_FiwareServicePath_RadiatorThermostat_fiware_room_101_1_v1> a ns1:MessageHeader ;
+    ns1:fieldName "Fiware-ServicePath" ;
+    ns1:fieldValue "/" .
+
+<http://example.com/resource/Header_FiwareServicePath_TemperatureSensor_fiware_room_101_1_v1> a ns1:MessageHeader ;
+    ns1:fieldName "Fiware-ServicePath" ;
+    ns1:fieldValue "/" .
+
+<http://example.com/resource/Header_FiwareService_RadiatorThermostat_fiware_room_101_1_v1> a ns1:MessageHeader ;
+    ns1:fieldName "Fiware-Service" ;
+    ns1:fieldValue "semantic_iot" .
+
+<http://example.com/resource/Header_FiwareService_TemperatureSensor_fiware_room_101_1_v1> a ns1:MessageHeader ;
+    ns1:fieldName "Fiware-Service" ;
+    ns1:fieldValue "semantic_iot" .
+
